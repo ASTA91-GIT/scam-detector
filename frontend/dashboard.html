@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Job Scam Detector</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>🛡️ Scam Detector</h2>
+            </div>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                <a href="analyze.html" class="nav-link">Analyze</a>
+                <button id="logoutBtn" class="btn btn-outline">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <a href="analyze.html" class="btn btn-primary">+ New Analysis</a>
+        </div>
+
+        <div id="statsCards" class="stats-grid">
+            <!-- Stats will be loaded here -->
+        </div>
+
+        <div class="section-header">
+            <h2>Recent Analyses</h2>
+        </div>
+
+        <div id="analysesList" class="analyses-list">
+            <div class="loading">Loading analyses...</div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

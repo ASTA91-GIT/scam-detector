@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyze Job Offer - Job Scam Detector</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>🛡️ Scam Detector</h2>
+            </div>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="analyze.html" class="nav-link active">Analyze</a>
+                <button id="logoutBtn" class="btn btn-outline">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="analysis-header">
+            <h1>Analyze Job Offer</h1>
+            <p>Upload an offer letter, paste job description, or enter company details</p>
+        </div>
+
+        <div class="analysis-card">
+            <form id="analysisForm" class="analysis-form">
+                <div class="form-tabs">
+                    <button type="button" class="tab-btn active" data-tab="text">Text Input</button>
+                    <button type="button" class="tab-btn" data-tab="file">Upload File</button>
+                </div>
+
+                <div id="textTab" class="tab-content active">
+                    <div class="form-group">
+                        <label for="jobText">Job Description / Offer Letter Text</label>
+                        <textarea id="jobText" name="text" rows="10" required 
+                                  placeholder="Paste the job description or offer letter text here..."></textarea>
+                    </div>
+                </div>
+
+                <div id="fileTab" class="tab-content">
+                    <div class="form-group">
+                        <label for="fileInput">Upload Offer Letter (PDF, DOC, DOCX, TXT)</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <input type="file" id="fileInput" name="file" accept=".pdf,.doc,.docx,.txt" style="display: none;">
+                            <div class="file-upload-content">
+                                <div class="file-icon">📄</div>
+                                <p>Click to upload or drag and drop</p>
+                                <p class="file-hint">PDF, DOC, DOCX, or TXT (Max 10MB)</p>
+                            </div>
+                        </div>
+                        <div id="fileName" class="file-name" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="companyEmail">Company Email (Optional)</label>
+                    <input type="email" id="companyEmail" name="company_email" 
+                           placeholder="hr@company.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="companyWebsite">Company Website (Optional)</label>
+                    <input type="url" id="companyWebsite" name="company_website" 
+                           placeholder="https://www.company.com">
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-large">
+                    <span id="analyzeBtnText">Analyze Job Offer</span>
+                    <span id="analyzeSpinner" class="spinner" style="display: none;"></span>
+                </button>
+            </form>
+        </div>
+
+        <div id="resultContainer" class="result-container" style="display: none;">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="analyze.js"></script>
+</body>
+</html>
