@@ -24,7 +24,13 @@ app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER', 'uploads')
 CORS(app, supports_credentials=True)
 
 # Initialize database
-init_db()
+# Initialize database
+try:
+    init_db()
+except Exception as e:
+    print("❌ Failed to connect to database. Shutting down.")
+    raise
+
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
