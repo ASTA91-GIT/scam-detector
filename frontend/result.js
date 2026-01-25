@@ -5,7 +5,7 @@ const API_BASE_URL = 'http://localhost:5000/api';
 window.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const analysisId = urlParams.get('id');
-    
+
     if (!analysisId) {
         document.getElementById('resultContent').innerHTML = `
             <div class="card">
@@ -15,7 +15,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         `;
         return;
     }
-    
+
     await loadResult(analysisId);
 });
 
@@ -27,13 +27,13 @@ async function loadResult(analysisId) {
             window.location.href = 'login.html';
             return;
         }
-        
+
         const response = await fetch(`${API_BASE_URL}/analysis/result/${analysisId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             displayResult(data.analysis);
@@ -59,12 +59,12 @@ async function loadResult(analysisId) {
 // Display result
 function displayResult(analysis) {
     const resultContent = document.getElementById('resultContent');
-    
-    const riskBadgeClass = analysis.risk_color === 'success' ? 'badge-success' : 
-                          analysis.risk_color === 'warning' ? 'badge-warning' : 'badge-danger';
-    
+
+    const riskBadgeClass = analysis.risk_color === 'success' ? 'badge-success' :
+        analysis.risk_color === 'warning' ? 'badge-warning' : 'badge-danger';
+
     const date = new Date(analysis.created_at).toLocaleString();
-    
+
     resultContent.innerHTML = `
         <div class="result-container">
             <div class="result-header">
@@ -96,11 +96,11 @@ function displayResult(analysis) {
                 <div class="detail-card">
                     <h4>Keyword Detections</h4>
                     <p>${analysis.keyword_score} suspicious keyword(s) found</p>
-                    ${Object.keys(analysis.keyword_detections).length > 0 ? 
-                        `<ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
-                            ${Object.entries(analysis.keyword_detections).map(([cat, keywords]) => 
-                                `<li><strong>${cat}:</strong> ${keywords.join(', ')}</li>`
-                            ).join('')}
+                    ${Object.keys(analysis.keyword_detections).length > 0 ?
+            `<ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                            ${Object.entries(analysis.keyword_detections).map(([cat, keywords]) =>
+                `<li><strong>${cat}:</strong> ${keywords.join(', ')}</li>`
+            ).join('')}
                         </ul>` : '<p>No suspicious keywords detected</p>'}
                 </div>
                 

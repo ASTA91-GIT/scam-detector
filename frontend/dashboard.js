@@ -1,6 +1,3 @@
-// Dashboard JavaScript
-const API_BASE_URL = 'http://localhost:5000/api';
-
 // Load dashboard data
 async function loadDashboard() {
     try {
@@ -9,152 +6,91 @@ async function loadDashboard() {
             window.location.href = 'login.html';
             return;
         }
-        
-        // Load stats
+
+        await loadUserInfo();
         await loadStats();
-        
-        // Load analyses
         await loadAnalyses();
+
     } catch (error) {
         console.error('Error loading dashboard:', error);
-        document.getElementById('analysesList').innerHTML = 
-            '<div class="error-message">Failed to load dashboard data</div>';
     }
 }
 
-// Load statistics
+// Load logged-in user info
+async function loadUserInfo() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        if (!response.ok) throw new Error('User fetch failed');
+
+        const user = await response.json();
+        document.getElementById('userName').innerText = `Name: ${user.name}`;
+        document.getElementById('userEmail').innerText = `Email: ${user.email}`;
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById('userName').innerText = 'Name: Unknown';
+        document.getElementById('userEmail').innerText = 'Email: Unknown';
+    }
+}
+
+// Load stats
 async function loadStats() {
     try {
-        const response = await fetch(`${API_BASE_URL}/dashboard/stats`, {
+        const res = await fetch(`${API_BASE_URL}/dashboard/stats`, {
             headers: getAuthHeaders()
         });
-        
-        if (response.ok) {
-            const data = await response.json();
-            displayStats(data);
-        }
-    } catch (error) {
-        console.error('Error loading stats:', error);
-    }
-}
 
-// Display statistics
-function displayStats(stats) {
-    const statsContainer = document.getElementById('statsCards');
-    statsContainer.innerHTML = `
-        <div class="stat-card">
-            <h3>Total Analyses</h3>
-            <div class="stat-value">${stats.total_analyses}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Safe</h3>
-            <div class="stat-value" style="color: var(--success-color);">${stats.safe_count}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Suspicious</h3>
-            <div class="stat-value" style="color: var(--warning-color);">${stats.suspicious_count}</div>
-        </div>
-        <div class="stat-card">
-            <h3>High Risk</h3>
-            <div class="stat-value" style="color: var(--danger-color);">${stats.high_risk_count}</div>
-        </div>
-        <div class="stat-card">
-            <h3>Avg Trust Score</h3>
-            <div class="stat-value">${stats.average_trust_score}</div>
-        </div>
-    `;
+        if (!res.ok) return;
+
+        const stats = await res.json();
+        document.getElementById('statsCards').innerHTML = `
+            <div class="stat-card">
+                <h3>Safe</h3>
+                <div class="stat-value">${stats.safe_count}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Suspicious</h3>
+                <div class="stat-value">${stats.suspicious_count}</div>
+            </div>
+            <div class="stat-card">
+                <h3>High Risk</h3>
+                <div class="stat-value">${stats.high_risk_count}</div>
+            </div>
+        `;
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 // Load analyses
 async function loadAnalyses() {
     try {
-        const response = await fetch(`${API_BASE_URL}/dashboard/analyses?limit=20`, {
+        const res = await fetch(`${API_BASE_URL}/dashboard/analyses`, {
             headers: getAuthHeaders()
         });
-        
-        if (response.ok) {
-            const data = await response.json();
-            displayAnalyses(data.analyses);
-        } else {
-            document.getElementById('analysesList').innerHTML = 
-                '<div class="error-message">Failed to load analyses</div>';
-        }
-    } catch (error) {
-        console.error('Error loading analyses:', error);
-        document.getElementById('analysesList').innerHTML = 
-            '<div class="error-message">Network error. Please try again.</div>';
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        document.getElementById('analysesList').innerHTML =
+            data.analyses.length === 0
+                ? '<p>No analyses yet</p>'
+                : data.analyses.map(a => `
+                    <div class="analysis-item">
+                        <h3>${a.risk_level}</h3>
+                        <p>Trust Score: ${a.trust_score}</p>
+                    </div>
+                `).join('');
+
+    } catch (err) {
+        console.error(err);
     }
 }
 
-// Display analyses list
-function displayAnalyses(analyses) {
-    const listContainer = document.getElementById('analysesList');
-    
-    if (analyses.length === 0) {
-        listContainer.innerHTML = `
-            <div class="card">
-                <p style="text-align: center; color: var(--text-secondary);">
-                    No analyses yet. <a href="analyze.html">Start analyzing</a> your first job offer!
-                </p>
-            </div>
-        `;
-        return;
-    }
-    
-    listContainer.innerHTML = analyses.map(analysis => {
-        const date = new Date(analysis.created_at).toLocaleDateString();
-        const riskBadgeClass = analysis.risk_color === 'success' ? 'badge-success' : 
-                              analysis.risk_color === 'warning' ? 'badge-warning' : 'badge-danger';
-        
-        return `
-            <div class="analysis-item">
-                <div class="analysis-item-info">
-                    <h3>Analysis #${analysis._id.slice(-6)}</h3>
-                    <p>Trust Score: ${analysis.trust_score}/100 | ${date}</p>
-                    <span class="risk-badge ${riskBadgeClass}">${analysis.risk_level}</span>
-                </div>
-                <div class="analysis-item-actions">
-                    <a href="result.html?id=${analysis._id}" class="btn btn-primary">View Details</a>
-                    <button onclick="deleteAnalysis('${analysis._id}')" class="btn btn-outline">Delete</button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-// Delete analysis
-async function deleteAnalysis(analysisId) {
-    if (!confirm('Are you sure you want to delete this analysis?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/dashboard/analyses/${analysisId}`, {
-            method: 'DELETE',
-            headers: getAuthHeaders()
-        });
-        
-        if (response.ok) {
-            loadDashboard(); // Reload dashboard
-        } else {
-            alert('Failed to delete analysis');
-        }
-    } catch (error) {
-        console.error('Error deleting analysis:', error);
-        alert('Network error. Please try again.');
-    }
-}
-
-// Get auth headers
-function getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
-}
-
-// Load dashboard on page load
-if (document.getElementById('analysesList')) {
-    loadDashboard();
-}
+// ✅ ALWAYS RUN
+loadDashboard();

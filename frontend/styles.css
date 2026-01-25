@@ -642,6 +642,9 @@ body {
     color: var(--text-secondary);
     font-size: 0.875rem;
 }
+.hidden {
+    display: none !important;
+}
 
 /* Loading & Spinner */
 .loading {

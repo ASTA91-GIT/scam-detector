@@ -1,158 +1,196 @@
-// Analysis JavaScript
-const API_BASE_URL = 'http://localhost:5000/api';
+// analyze.js
+// API_BASE_URL & getAuthHeaders() come from auth.js
 
-// Tab switching
+const form = document.getElementById('analysisForm');
+const fileInput = document.getElementById('fileInput');
+const fileUploadArea = document.getElementById('fileUploadArea');
+const fileName = document.getElementById('fileName');
+const resultContainer = document.getElementById('resultContainer');
+/* =========================
+   TAB SWITCHING (REQUIRED)
+   ========================= */
+
 const tabButtons = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
 
 tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-        const targetTab = btn.getAttribute('data-tab');
-        
+        const target = btn.dataset.tab;
+
         // Update buttons
         tabButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
-        // Update content
-        tabContents.forEach(c => c.classList.remove('active'));
-        document.getElementById(`${targetTab}Tab`).classList.add('active');
+
+        // Update tabs
+        tabContents.forEach(tab => tab.classList.remove('active'));
+        document.getElementById(`${target}Tab`).classList.add('active');
     });
 });
 
-// File upload handling
-const fileInput = document.getElementById('fileInput');
-const fileUploadArea = document.getElementById('fileUploadArea');
-const fileName = document.getElementById('fileName');
+/* =========================
+   FILE UPLOAD UI HANDLING
+   ========================= */
 
+// Click upload area → open file picker
 fileUploadArea.addEventListener('click', () => {
     fileInput.click();
 });
 
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        fileName.textContent = `Selected: ${file.name}`;
+// Show file name
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
         fileName.style.display = 'block';
+        fileName.innerText = `Selected file: ${fileInput.files[0].name}`;
     }
 });
 
-// Drag and drop
+// Drag & drop
 fileUploadArea.addEventListener('dragover', (e) => {
     e.preventDefault();
-    fileUploadArea.style.borderColor = 'var(--primary-color)';
-    fileUploadArea.style.background = 'var(--light-bg)';
+    fileUploadArea.classList.add('drag-over');
 });
 
 fileUploadArea.addEventListener('dragleave', () => {
-    fileUploadArea.style.borderColor = 'var(--border-color)';
-    fileUploadArea.style.background = 'transparent';
+    fileUploadArea.classList.remove('drag-over');
 });
 
 fileUploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
-    fileUploadArea.style.borderColor = 'var(--border-color)';
-    fileUploadArea.style.background = 'transparent';
-    
-    const file = e.dataTransfer.files[0];
-    if (file) {
+    fileUploadArea.classList.remove('drag-over');
+
+    if (e.dataTransfer.files.length > 0) {
         fileInput.files = e.dataTransfer.files;
-        fileName.textContent = `Selected: ${file.name}`;
         fileName.style.display = 'block';
+        fileName.innerText = `Selected file: ${e.dataTransfer.files[0].name}`;
     }
 });
 
-// Analysis form submission
-document.getElementById('analysisForm').addEventListener('submit', async (e) => {
+/* =========================
+   FORM SUBMIT
+   ========================= */
+
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const analyzeBtnText = document.getElementById('analyzeBtnText');
     const analyzeSpinner = document.getElementById('analyzeSpinner');
-    const errorMessage = document.getElementById('errorMessage');
-    
+
     hideError('errorMessage');
-    
+
+    const jobText = document.getElementById('jobText').value.trim();
+    const companyEmail = document.getElementById('companyEmail').value.trim();
+    const companyWebsite = document.getElementById('companyWebsite').value.trim();
+    const file = fileInput.files[0];
+
+    if (!jobText && !file) {
+        showError('errorMessage', 'Please paste text OR upload a file');
+        return;
+    }
+
     analyzeBtnText.style.display = 'none';
     analyzeSpinner.style.display = 'inline-block';
-    
+
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        const formData = new FormData();
-        
-        // Get text input
-        const jobText = document.getElementById('jobText').value;
-        const companyEmail = document.getElementById('companyEmail').value;
-        const companyWebsite = document.getElementById('companyWebsite').value;
-        
-        // Check if file is uploaded
-        const file = fileInput.files[0];
-        
+        let response;
+
+        // ✅ FILE PATH
         if (file) {
+            const formData = new FormData();
             formData.append('file', file);
-        }
-        
-        if (jobText) {
-            formData.append('text', jobText);
-        }
-        
-        if (companyEmail) {
-            formData.append('company_email', companyEmail);
-        }
-        
-        if (companyWebsite) {
-            formData.append('company_website', companyWebsite);
-        }
-        
-        // Validate input
-        if (!jobText && !file) {
-            showError('errorMessage', 'Please provide job description text or upload a file');
-            analyzeBtnText.style.display = 'inline';
-            analyzeSpinner.style.display = 'none';
-            return;
-        }
-        
-        const response = await fetch(`${API_BASE_URL}/analysis/analyze`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            // Redirect to result page
-            window.location.href = `result.html?id=${data.result.analysis_id}`;
+
+            if (companyEmail) formData.append('company_email', companyEmail);
+            if (companyWebsite) formData.append('company_website', companyWebsite);
+
+            response = await fetch(`${API_BASE_URL}/analysis/analyze`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+
+        // ✅ TEXT PATH
         } else {
-            showError('errorMessage', data.error || 'Analysis failed');
-            analyzeBtnText.style.display = 'inline';
-            analyzeSpinner.style.display = 'none';
+            response = await fetch(`${API_BASE_URL}/analysis/analyze`, {
+                method: 'POST',
+                headers: getAuthHeaders(true),
+                body: JSON.stringify({
+                    text: jobText,
+                    company_email: companyEmail,
+                    company_website: companyWebsite
+                })
+            });
         }
+
+        // Guard JSON
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error('Backend did not return JSON');
+        }
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || 'Analysis failed');
+        }
+
+        const result = data.result;
+        const explanations = Array.isArray(result.explanations)
+            ? result.explanations
+            : [];
+
+        resultContainer.classList.remove('hidden');
+
+        resultContainer.innerHTML = `
+            <div class="result-header">
+                <h2>Analysis Result</h2>
+            </div>
+
+            <div class="trust-score-display">
+                <div class="score-circle ${
+                    result.risk_level === 'Safe'
+                        ? 'success'
+                        : result.risk_level === 'Suspicious'
+                        ? 'warning'
+                        : 'danger'
+                }">
+                    ${result.trust_score}
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:1rem;">
+                <span class="risk-badge ${
+                    result.risk_level === 'Safe'
+                        ? 'badge-success'
+                        : result.risk_level === 'Suspicious'
+                        ? 'badge-warning'
+                        : 'badge-danger'
+                }">
+                    ${result.risk_level}
+                </span>
+            </div>
+
+            <p style="text-align:center; margin-top:1rem;">
+                Analysis completed
+            </p>
+
+            ${
+                explanations.length > 0
+                    ? `<div class="explanations-list">
+                        ${explanations.map(e => `
+                            <div class="explanation-item">${e}</div>
+                        `).join('')}
+                       </div>`
+                    : `<p style="text-align:center; color:#666;">
+                        No specific scam indicators detected
+                       </p>`
+            }
+        `;
+
     } catch (error) {
-        console.error('Error:', error);
-        showError('errorMessage', 'Network error. Please try again.');
+        console.error('Analysis error:', error);
+        showError('errorMessage', error.message);
+    } finally {
         analyzeBtnText.style.display = 'inline';
         analyzeSpinner.style.display = 'none';
     }
 });
-
-// Helper functions
-function showError(elementId, message) {
-    const errorEl = document.getElementById(elementId);
-    if (errorEl) {
-        errorEl.textContent = message;
-        errorEl.style.display = 'block';
-    }
-}
-
-function hideError(elementId) {
-    const errorEl = document.getElementById(elementId);
-    if (errorEl) {
-        errorEl.style.display = 'none';
-    }
-}
