@@ -163,3 +163,38 @@ if (
 ) {
     checkAuth(true);
 }
+/* =========================
+   PASSWORD STRENGTH CHECK
+   ========================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+    const passwordInput = document.getElementById('password');
+    if (!passwordInput) return;
+
+    const rules = {
+        length: document.getElementById('rule-length'),
+        upper: document.getElementById('rule-upper'),
+        lower: document.getElementById('rule-lower'),
+        number: document.getElementById('rule-number'),
+        special: document.getElementById('rule-special')
+    };
+
+    passwordInput.addEventListener('input', () => {
+        const value = passwordInput.value;
+
+        // At least 8 chars
+        rules.length.classList.toggle('valid', value.length >= 8);
+
+        // Uppercase
+        rules.upper.classList.toggle('valid', /[A-Z]/.test(value));
+
+        // Lowercase
+        rules.lower.classList.toggle('valid', /[a-z]/.test(value));
+
+        // Number
+        rules.number.classList.toggle('valid', /\d/.test(value));
+
+        // Special char
+        rules.special.classList.toggle('valid', /[@$!%*?&]/.test(value));
+    });
+});

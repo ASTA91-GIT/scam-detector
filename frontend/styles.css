@@ -744,3 +744,25 @@ body {
 .progress-fill.danger {
     background: var(--danger-color);
 }
+/* =========================
+   PASSWORD RULES UI
+   ========================= */
+
+.password-rules {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.password-rules ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.password-rules li {
+    color: #ef4444; /* red */
+    transition: color 0.3s;
+}
+
+.password-rules li.valid {
+    color: #10b981; /* green */
+}

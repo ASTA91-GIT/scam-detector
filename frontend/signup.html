@@ -18,35 +18,64 @@
 
             <form id="signupForm" class="auth-form">
 
-                <!-- ✅ NEW USERNAME FIELD -->
+                <!-- Username -->
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required placeholder="Your display name">
                 </div>
 
+                <!-- Email -->
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" required placeholder="your@email.com">
                 </div>
 
+                <!-- Password -->
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Minimum 6 characters"
-                        minlength="6">
+
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="password" required placeholder="Strong password">
+
+                        <span id="togglePassword" style="
+                                position: absolute;
+                                right: 10px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                cursor: pointer;">
+                            👁️
+                        </span>
+                    </div>
+
+                    <!-- Password rules -->
+                    <div class="password-rules" id="passwordRules">
+                        <p>Password must contain:</p>
+                        <ul>
+                            <li id="rule-length">• At least 8 characters</li>
+                            <li id="rule-upper">• One uppercase letter</li>
+                            <li id="rule-lower">• One lowercase letter</li>
+                            <li id="rule-number">• One number</li>
+                            <li id="rule-special">• One special character</li>
+                        </ul>
+                    </div>
                 </div>
 
+                <!-- Confirm password -->
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <input type="password" id="confirmPassword" name="confirmPassword" required
                         placeholder="Re-enter password">
                 </div>
 
+                <!-- Error -->
                 <div id="errorMessage" class="error-message" style="display: none;"></div>
 
+                <!-- Submit -->
                 <button type="submit" class="btn btn-primary btn-block">
                     <span id="signupBtnText">Create Account</span>
                     <span id="signupSpinner" class="spinner" style="display: none;"></span>
                 </button>
+
             </form>
 
             <div class="auth-footer">
@@ -56,6 +85,7 @@
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="auth.js"></script>
 </body>
 
