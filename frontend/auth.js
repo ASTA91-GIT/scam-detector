@@ -198,3 +198,33 @@ document.addEventListener('DOMContentLoaded', () => {
         rules.special.classList.toggle('valid', /[@$!%*?&]/.test(value));
     });
 });
+/* =========================
+   DARK MODE TOGGLE (FIXED)
+   ========================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('themeToggle');
+
+    function applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+
+        if (themeToggle) {
+            themeToggle.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+        }
+    }
+
+    // Load saved theme OR system preference
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    applyTheme(savedTheme || (systemPrefersDark ? 'dark' : 'light'));
+
+    // Toggle theme
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+    }
+});

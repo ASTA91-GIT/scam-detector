@@ -105,3 +105,49 @@ def get_stats():
         
     except Exception as e:
         return jsonify({'error': f'Failed to retrieve stats: {str(e)}'}), 500
+@dashboard_bp.route('/summary', methods=['GET'])
+@require_auth
+def dashboard_summary():
+    try:
+        user_id = request.user_id
+        analyses_collection = get_analyses_collection()
+
+        analyses = list(
+            analyses_collection.find({'user_id': user_id})
+            .sort('created_at', -1)
+        )
+
+        total = len(analyses)
+
+        if total == 0:
+            return jsonify({
+                'overall_score': 100,
+                'confidence': 100,
+                'total_scans': 0,
+                'high_risk': 0,
+                'recent': []
+            }), 200
+
+        avg_score = sum(a.get('trust_score', 0) for a in analyses) / total
+        high_risk = sum(
+            1 for a in analyses if a.get('risk_level') in ['High', 'High Risk']
+        )
+
+        return jsonify({
+            'overall_score': round(avg_score),
+            'confidence': min(100, 85 + total),  # confidence grows with usage
+            'total_scans': total,
+            'high_risk': high_risk,
+            'recent': [
+                {
+                    'risk_level': a.get('risk_level'),
+                    'trust_score': a.get('trust_score'),
+                    'explanations': a.get('explanations', [])[:3],
+                    'created_at': a.get('created_at').isoformat()
+                }
+                for a in analyses[:5]
+            ]
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

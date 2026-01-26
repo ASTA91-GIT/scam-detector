@@ -68,6 +68,7 @@ async function loadStats() {
 }
 
 // Load analyses
+// Load analyses
 async function loadAnalyses() {
     try {
         const res = await fetch(`${API_BASE_URL}/dashboard/analyses`, {
@@ -77,13 +78,31 @@ async function loadAnalyses() {
         if (!res.ok) return;
 
         const data = await res.json();
+
         document.getElementById('analysesList').innerHTML =
             data.analyses.length === 0
                 ? '<p>No analyses yet</p>'
                 : data.analyses.map(a => `
-                    <div class="analysis-item">
-                        <h3>${a.risk_level}</h3>
-                        <p>Trust Score: ${a.trust_score}</p>
+                    <div class="analysis-item" data-risk="${a.risk_level}">
+                        <div class="analysis-item-info">
+                            <h3>${a.risk_level}</h3>
+
+                            <!-- TRUST SCORE BLOCK -->
+                            <div class="analysis-score">
+                                <span>Trust Score</span>
+                                <strong>${a.trust_score}</strong>
+                            </div>
+                        </div>
+
+                        <span class="dashboard-badge ${
+                            a.risk_level === 'Safe'
+                                ? 'safe'
+                                : a.risk_level === 'Suspicious'
+                                ? 'warning'
+                                : 'danger'
+                        }">
+                            ${a.risk_level}
+                        </span>
                     </div>
                 `).join('');
 
@@ -91,6 +110,6 @@ async function loadAnalyses() {
         console.error(err);
     }
 }
+document.addEventListener('DOMContentLoaded', loadDashboard);
 
-// ✅ ALWAYS RUN
-loadDashboard();
+// Logout functionality
