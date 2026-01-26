@@ -6,8 +6,9 @@ const fileInput = document.getElementById('fileInput');
 const fileUploadArea = document.getElementById('fileUploadArea');
 const fileName = document.getElementById('fileName');
 const resultContainer = document.getElementById('resultContainer');
+
 /* =========================
-   TAB SWITCHING (REQUIRED)
+   TAB SWITCHING
    ========================= */
 
 const tabButtons = document.querySelectorAll('.tab-btn');
@@ -17,26 +18,20 @@ tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         const target = btn.dataset.tab;
 
-        // Update buttons
         tabButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        // Update tabs
         tabContents.forEach(tab => tab.classList.remove('active'));
         document.getElementById(`${target}Tab`).classList.add('active');
     });
 });
 
 /* =========================
-   FILE UPLOAD UI HANDLING
+   FILE UPLOAD UI
    ========================= */
 
-// Click upload area → open file picker
-fileUploadArea.addEventListener('click', () => {
-    fileInput.click();
-});
+fileUploadArea.addEventListener('click', () => fileInput.click());
 
-// Show file name
 fileInput.addEventListener('change', () => {
     if (fileInput.files.length > 0) {
         fileName.style.display = 'block';
@@ -44,17 +39,16 @@ fileInput.addEventListener('change', () => {
     }
 });
 
-// Drag & drop
-fileUploadArea.addEventListener('dragover', (e) => {
+fileUploadArea.addEventListener('dragover', e => {
     e.preventDefault();
     fileUploadArea.classList.add('drag-over');
 });
 
-fileUploadArea.addEventListener('dragleave', () => {
-    fileUploadArea.classList.remove('drag-over');
-});
+fileUploadArea.addEventListener('dragleave', () =>
+    fileUploadArea.classList.remove('drag-over')
+);
 
-fileUploadArea.addEventListener('drop', (e) => {
+fileUploadArea.addEventListener('drop', e => {
     e.preventDefault();
     fileUploadArea.classList.remove('drag-over');
 
@@ -93,11 +87,10 @@ form.addEventListener('submit', async (e) => {
     try {
         let response;
 
-        // ✅ FILE PATH
+        // FILE ANALYSIS
         if (file) {
             const formData = new FormData();
             formData.append('file', file);
-
             if (companyEmail) formData.append('company_email', companyEmail);
             if (companyWebsite) formData.append('company_website', companyWebsite);
 
@@ -109,7 +102,7 @@ form.addEventListener('submit', async (e) => {
                 body: formData
             });
 
-        // ✅ TEXT PATH
+        // TEXT ANALYSIS
         } else {
             response = await fetch(`${API_BASE_URL}/analysis/analyze`, {
                 method: 'POST',
@@ -122,69 +115,66 @@ form.addEventListener('submit', async (e) => {
             });
         }
 
-        // Guard JSON
-        const contentType = response.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-            throw new Error('Backend did not return JSON');
-        }
-
         const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.error || 'Analysis failed');
-        }
+        if (!response.ok) throw new Error(data.error || 'Analysis failed');
 
-        const result = data.result;
-        const explanations = Array.isArray(result.explanations)
-            ? result.explanations
-            : [];
+        const result = data.result || {};
+
+        /* =========================
+           POPULATE RESULT UI
+           ========================= */
 
         resultContainer.classList.remove('hidden');
 
-        resultContainer.innerHTML = `
-            <div class="result-header">
-                <h2>Analysis Result</h2>
-            </div>
+        // SCORE SUMMARY
+        document.getElementById('riskLevelTitle').innerText =
+            `Risk Level: ${result.risk_level || 'Unknown'}`;
 
-            <div class="trust-score-display">
-                <div class="score-circle ${
-                    result.risk_level === 'Safe'
-                        ? 'success'
-                        : result.risk_level === 'Suspicious'
-                        ? 'warning'
-                        : 'danger'
-                }">
-                    ${result.trust_score}
-                </div>
-            </div>
+        document.getElementById('trustScoreText').innerText =
+            `Trust Score: ${result.trust_score ?? '--'}`;
 
-            <div style="text-align:center; margin-top:1rem;">
-                <span class="risk-badge ${
-                    result.risk_level === 'Safe'
-                        ? 'badge-success'
-                        : result.risk_level === 'Suspicious'
-                        ? 'badge-warning'
-                        : 'badge-danger'
-                }">
-                    ${result.risk_level}
-                </span>
-            </div>
+        // AI REASONING
+        const aiList = document.getElementById('aiReasoningList');
+        aiList.innerHTML = '';
+        (result.explanations || []).forEach(reason => {
+            const li = document.createElement('li');
+            li.textContent = reason;
+            aiList.appendChild(li);
+        });
 
-            <p style="text-align:center; margin-top:1rem;">
-                Analysis completed
-            </p>
+        if (aiList.children.length === 0) {
+            aiList.innerHTML = '<li>No strong scam patterns detected.</li>';
+        }
 
-            ${
-                explanations.length > 0
-                    ? `<div class="explanations-list">
-                        ${explanations.map(e => `
-                            <div class="explanation-item">${e}</div>
-                        `).join('')}
-                       </div>`
-                    : `<p style="text-align:center; color:#666;">
-                        No specific scam indicators detected
-                       </p>`
-            }
-        `;
+        // RED FLAGS
+        const redFlagsList = document.getElementById('redFlagsList');
+        redFlagsList.innerHTML = '';
+        (result.red_flags || []).forEach(flag => {
+            const li = document.createElement('li');
+            li.textContent = flag;
+            redFlagsList.appendChild(li);
+        });
+
+        if (redFlagsList.children.length === 0) {
+            redFlagsList.innerHTML = '<li>No major red flags found.</li>';
+        }
+
+        // RECOMMENDATIONS
+        const recommendationList = document.getElementById('recommendationList');
+        recommendationList.innerHTML = '';
+        (result.recommendations || []).forEach(rec => {
+            const li = document.createElement('li');
+            li.textContent = rec;
+            recommendationList.appendChild(li);
+        });
+
+        if (recommendationList.children.length === 0) {
+            recommendationList.innerHTML =
+                '<li>This offer appears safe. Continue normal verification.</li>';
+        }
+
+        // Scroll to result
+        resultContainer.scrollIntoView({ behavior: 'smooth' });
 
     } catch (error) {
         console.error('Analysis error:', error);
@@ -193,4 +183,25 @@ form.addEventListener('submit', async (e) => {
         analyzeBtnText.style.display = 'inline';
         analyzeSpinner.style.display = 'none';
     }
+});
+/* =========================
+   NEW ANALYSIS / RESET
+   ========================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+    const resetBtn = document.getElementById('resetAnalysisBtn');
+
+    if (!resetBtn) return;
+
+    resetBtn.addEventListener('click', () => {
+        document.getElementById('jobText').value = '';
+        document.getElementById('companyEmail').value = '';
+        document.getElementById('companyWebsite').value = '';
+        document.getElementById('fileInput').value = '';
+        document.getElementById('fileName').style.display = 'none';
+
+        document.getElementById('resultContainer').classList.add('hidden');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 });
