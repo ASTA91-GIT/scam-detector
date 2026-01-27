@@ -27,16 +27,13 @@ tabButtons.forEach(btn => {
 });
 
 /* =========================
-   FILE UPLOAD UI
+   FILE UPLOAD UI (FIXED)
    ========================= */
 
 fileUploadArea.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', () => {
-    if (fileInput.files.length > 0) {
-        fileName.style.display = 'block';
-        fileName.innerText = `Selected file: ${fileInput.files[0].name}`;
-    }
+    handleFileSelected(fileInput.files[0]);
 });
 
 fileUploadArea.addEventListener('dragover', e => {
@@ -44,9 +41,9 @@ fileUploadArea.addEventListener('dragover', e => {
     fileUploadArea.classList.add('drag-over');
 });
 
-fileUploadArea.addEventListener('dragleave', () =>
-    fileUploadArea.classList.remove('drag-over')
-);
+fileUploadArea.addEventListener('dragleave', () => {
+    fileUploadArea.classList.remove('drag-over');
+});
 
 fileUploadArea.addEventListener('drop', e => {
     e.preventDefault();
@@ -54,10 +51,28 @@ fileUploadArea.addEventListener('drop', e => {
 
     if (e.dataTransfer.files.length > 0) {
         fileInput.files = e.dataTransfer.files;
-        fileName.style.display = 'block';
-        fileName.innerText = `Selected file: ${e.dataTransfer.files[0].name}`;
+        handleFileSelected(e.dataTransfer.files[0]);
     }
 });
+
+/* =========================
+   FILE SELECT HANDLER
+   ========================= */
+
+function handleFileSelected(file) {
+    if (!file) return;
+
+    fileName.classList.remove('hidden');
+    fileName.innerHTML = `
+        ✅ <strong>${file.name}</strong><br>
+        <small>File ready for analysis</small>
+    `;
+
+    // Visual success state
+    fileUploadArea.style.borderColor = '#10b981';
+    fileUploadArea.style.background = 'rgba(16, 185, 129, 0.08)';
+}
+
 
 /* =========================
    FORM SUBMIT
@@ -102,7 +117,7 @@ form.addEventListener('submit', async (e) => {
                 body: formData
             });
 
-        // TEXT ANALYSIS
+            // TEXT ANALYSIS
         } else {
             response = await fetch(`${API_BASE_URL}/analysis/analyze`, {
                 method: 'POST',
@@ -192,16 +207,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetAnalysisBtn');
 
     if (!resetBtn) return;
-
     resetBtn.addEventListener('click', () => {
         document.getElementById('jobText').value = '';
         document.getElementById('companyEmail').value = '';
         document.getElementById('companyWebsite').value = '';
-        document.getElementById('fileInput').value = '';
-        document.getElementById('fileName').style.display = 'none';
+        fileInput.value = '';
 
-        document.getElementById('resultContainer').classList.add('hidden');
+        fileName.classList.add('hidden');
+        fileName.innerHTML = '';
 
+        fileUploadArea.style.borderColor = '';
+        fileUploadArea.style.background = '';
+
+        resultContainer.classList.add('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 });
