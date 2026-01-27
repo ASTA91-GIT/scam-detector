@@ -221,11 +221,9 @@ def analyze_job_offer(text, company_email=None, company_website=None):
         "trust_score": trust_score,
         "risk_level": risk_level,
         "risk_color": risk_color,  
+        "keyword_score": keyword_score,
         "explanations": explanations,
         "keyword_detections": keywords,
-          # 🔑 REQUIRED FOR STABILITY
-    "keyword_score": keyword_score,
-    "keyword_detections": keywords,
         "urgency_score": urgency_score,
         "grammar_issues": grammar_issues,
         "financial_flags_count": financial_count,

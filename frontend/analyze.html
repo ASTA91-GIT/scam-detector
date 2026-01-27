@@ -9,7 +9,8 @@
 </head>
 
 <body>
-    <!-- NAVBAR -->
+
+    <!-- ================= NAVBAR ================= -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
@@ -24,115 +25,187 @@
         </div>
     </nav>
 
-    <!-- PAGE CONTAINER -->
+    <!-- ================= PAGE ================= -->
     <div class="container">
+
+        <!-- HEADER -->
         <div class="analysis-header">
             <h1>Analyze Job Offer</h1>
             <p>Upload an offer letter, paste job description, or enter company details</p>
         </div>
 
-        <!-- ANALYSIS FORM -->
-        <div class="analysis-card">
-            <form id="analysisForm" class="analysis-form">
+        <!-- ================= 3 COLUMN LAYOUT ================= -->
+        <div class="analysis-layout">
 
-                <!-- TABS -->
-                <div class="form-tabs">
-                    <button type="button" class="tab-btn active" data-tab="text">Text Input</button>
-                    <button type="button" class="tab-btn" data-tab="file">Upload File</button>
-                </div>
+            <!-- ================= LEFT: RISK GUIDE ================= -->
+            <aside class="risk-guide">
+                <h3>📊 Risk Level Guide</h3>
 
-                <!-- TEXT INPUT TAB -->
-                <div id="textTab" class="tab-content active">
-                    <div class="form-group">
-                        <label for="jobText">Job Description / Offer Letter Text</label>
-                        <textarea id="jobText" name="text" rows="10"
-                            placeholder="Paste the job description or offer letter text here..."></textarea>
+                <div class="risk-item safe">
+                    <span class="risk-dot"></span>
+                    <div>
+                        <strong>Safe</strong>
+                        <p>Score: 80 – 100</p>
+                        <small>Legitimate offers with no payment or pressure</small>
                     </div>
                 </div>
 
-                <!-- FILE TAB -->
-                <div id="fileTab" class="tab-content">
-                    <div class="form-group">
-                        <label for="fileInput">Upload Offer Letter (PDF, DOC, DOCX, TXT)</label>
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <input type="file" id="fileInput" name="file" accept=".pdf,.doc,.docx,.txt"
-                                style="display: none;">
-                            <div class="file-upload-content">
-                                <div class="file-icon">📄</div>
-                                <p>Click to upload or drag and drop</p>
-                                <p class="file-hint">PDF, DOC, DOCX, or TXT (Max 10MB)</p>
+                <div class="risk-item suspicious">
+                    <span class="risk-dot"></span>
+                    <div>
+                        <strong>Suspicious</strong>
+                        <p>Score: 50 – 79</p>
+                        <small>Verify company and avoid sharing details</small>
+                    </div>
+                </div>
+
+                <div class="risk-item danger">
+                    <span class="risk-dot"></span>
+                    <div>
+                        <strong>High Risk</strong>
+                        <p>Score: 0 – 49</p>
+                        <small>Likely scam — do not pay or respond</small>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ================= CENTER: ANALYSIS ================= -->
+            <section class="analysis-main">
+
+                <!-- FORM -->
+                <div class="analysis-card">
+                    <form id="analysisForm" class="analysis-form">
+
+                        <!-- TABS -->
+                        <div class="form-tabs">
+                            <button type="button" class="tab-btn active" data-tab="text">Text Input</button>
+                            <button type="button" class="tab-btn" data-tab="file">Upload File</button>
+                        </div>
+
+                        <!-- TEXT TAB -->
+                        <div id="textTab" class="tab-content active">
+                            <div class="form-group">
+                                <label for="jobText">Job Description / Offer Letter Text</label>
+                                <textarea id="jobText" rows="10"
+                                    placeholder="Paste the job description or offer letter text here..."></textarea>
                             </div>
                         </div>
-                        <div id="fileName" class="file-name" style="display: none;"></div>
+
+                        <!-- FILE TAB -->
+                        <div id="fileTab" class="tab-content">
+                            <div class="form-group">
+                                <label>Upload Offer Letter</label>
+                                <div class="file-upload-area" id="fileUploadArea">
+                                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" hidden>
+                                    <div class="file-upload-content">
+                                        <div class="file-icon">📄</div>
+                                        <p>Click or drag & drop file</p>
+                                    </div>
+                                </div>
+                                <div id="fileName" class="file-name hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- COMPANY INFO -->
+                        <div class="form-group">
+                            <label>Company Email (Optional)</label>
+                            <input type="email" id="companyEmail" placeholder="hr@company.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Company Website (Optional)</label>
+                            <input type="url" id="companyWebsite" placeholder="https://company.com">
+                        </div>
+
+                        <div id="errorMessage" class="error-message hidden"></div>
+
+                        <!-- ACTIONS -->
+                        <button class="btn btn-primary btn-block btn-large">
+                            <span id="analyzeBtnText">Analyze Job Offer</span>
+                            <span id="analyzeSpinner" class="spinner hidden"></span>
+                        </button>
+
+                        <button type="button" id="resetAnalysisBtn" class="btn btn-outline btn-block">
+                            ➕ New Analysis
+                        </button>
+
+                    </form>
+                </div>
+
+                <!-- RESULTS -->
+                <div id="resultContainer" class="result-container hidden">
+
+                    <!-- SCORE SUMMARY -->
+                    <div class="card">
+                        <h2 id="riskLevelTitle">Risk Level</h2>
+                        <p id="trustScoreText">Trust Score: --</p>
                     </div>
+
+                    <!-- AI REASONING -->
+                    <div class="card">
+                        <h3>🧠 AI Risk Reasoning</h3>
+                        <ul id="aiReasoningList"></ul>
+                    </div>
+
+                    <!-- RED FLAGS -->
+                    <div class="card">
+                        <h3>🚩 Detected Red Flags</h3>
+                        <ul id="redFlagsList"></ul>
+                    </div>
+
+                    <!-- RECOMMENDATIONS -->
+                    <div class="card">
+                        <h3>✅ Recommended Actions</h3>
+                        <ul id="recommendationList"></ul>
+                    </div>
+
                 </div>
 
-                <!-- COMPANY DETAILS -->
-                <div class="form-group">
-                    <label for="companyEmail">Company Email (Optional)</label>
-                    <input type="email" id="companyEmail" name="company_email" placeholder="hr@company.com">
-                </div>
+            </section>
 
-                <div class="form-group">
-                    <label for="companyWebsite">Company Website (Optional)</label>
-                    <input type="url" id="companyWebsite" name="company_website" placeholder="https://www.company.com">
-                </div>
+            <!-- ================= RIGHT: TRUSTED SOURCES ================= -->
+            <aside class="trusted-sources">
+                <h3>🔐 Trusted Verification Sources</h3>
 
-                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <ul class="trusted-list">
+                    <li>
+                        <span class="trusted-icon">🌐</span>
+                        <div>
+                            <strong>Company Official Website</strong>
+                            <p>Verify offers via the official domain</p>
+                        </div>
+                    </li>
 
-                <!-- ACTION BUTTONS -->
-                <div class="analysis-actions">
-                    <button type="submit" class="btn btn-primary btn-block btn-large">
-                        <span id="analyzeBtnText">Analyze Job Offer</span>
-                        <span id="analyzeSpinner" class="spinner" style="display: none;"></span>
-                    </button>
+                    <li>
+                        <span class="trusted-icon">💼</span>
+                        <div>
+                            <strong>LinkedIn Company Page</strong>
+                            <p>Check employee profiles and activity</p>
+                        </div>
+                    </li>
 
-                    <!-- NEW ANALYSIS BUTTON -->
-                    <button type="button" id="resetAnalysisBtn" class="btn btn-outline btn-block">
-                        ➕ New Analysis
-                    </button>
-                </div>
+                    <li>
+                        <span class="trusted-icon">🏛️</span>
+                        <div>
+                            <strong>Government / University Portals</strong>
+                            <p>Use official placement portals</p>
+                        </div>
+                    </li>
 
-            </form>
-        </div>
-
-        <!-- RESULTS SECTION -->
-        <div id="resultContainer" class="result-container hidden">
-
-            <!-- SCORE SUMMARY -->
-            <div class="card">
-                <h2 id="riskLevelTitle">Risk Level</h2>
-                <p id="trustScoreText">Trust Score: --</p>
-            </div>
-
-            <!-- AI REASONING -->
-            <div class="card">
-                <h3>🧠 AI Risk Reasoning</h3>
-                <ul id="aiReasoningList">
-                    <!-- Dynamically filled -->
+                    <li>
+                        <span class="trusted-icon">🧾</span>
+                        <div>
+                            <strong>Glassdoor / AmbitionBox</strong>
+                            <p>Check reviews and scam warnings</p>
+                        </div>
+                    </li>
                 </ul>
-            </div>
-
-            <!-- RED FLAGS -->
-            <div class="card">
-                <h3>🚩 Detected Red Flags</h3>
-                <ul id="redFlagsList">
-                    <!-- Dynamically filled -->
-                </ul>
-            </div>
-
-            <!-- RECOMMENDATIONS -->
-            <div class="card">
-                <h3>✅ Recommended Actions</h3>
-                <ul id="recommendationList">
-                    <!-- Dynamically filled -->
-                </ul>
-            </div>
+            </aside>
 
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- ================= SCRIPTS ================= -->
     <script src="auth.js"></script>
     <script src="analyze.js"></script>
 
