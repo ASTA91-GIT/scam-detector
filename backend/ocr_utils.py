@@ -1,52 +1,56 @@
-import os
+# backend/ocr_utils.py
 import pytesseract
+import cv2
+import numpy as np
 from PIL import Image
-import fitz  # PyMuPDF
-from docx import Document
-from werkzeug.utils import secure_filename
+import os
 
-ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg", "doc", "docx", "txt"}
+# ===============================
+# CONFIGURE TESSERACT PATHS
+# ===============================
 
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+# 🔴 CHANGE ONLY IF YOUR PATH IS DIFFERENT
+pytesseract.pytesseract.tesseract_cmd = r"D:\SOFTWARES\tesseract.exe"
+
+# Tell Tesseract where trained data lives
+os.environ["TESSDATA_PREFIX"] = r"D:\SOFTWARES\tessdata"
+
+# ===============================
+# IMAGE PREPROCESSING
+# ===============================
+
+def preprocess_image(image_path):
+    image = cv2.imread(image_path)
+
+    if image is None:
+        raise ValueError("Unable to read image for OCR")
+
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Noise reduction
+    gray = cv2.medianBlur(gray, 3)
+
+    # Adaptive threshold for better OCR
+    thresh = cv2.adaptiveThreshold(
+        gray,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY,
+        31,
+        2
+    )
+
+    return thresh
 
 
-def save_uploaded_file(file, user_id):
-    filename = secure_filename(file.filename)
-    upload_dir = os.path.join("uploads", str(user_id))
-    os.makedirs(upload_dir, exist_ok=True)
+# ===============================
+# OCR FUNCTION
+# ===============================
 
-    path = os.path.join(upload_dir, filename)
-    file.save(path)
-    return path, filename
+def extract_text_from_image(image_path):
+    processed = preprocess_image(image_path)
 
+    config = "--oem 3 --psm 6"
+    text = pytesseract.image_to_string(processed, lang="eng", config=config)
 
-def extract_text_from_file(path, ext):
-    ext = ext.lower()
-
-    if ext in ["png", "jpg", "jpeg"]:
-        return pytesseract.image_to_string(Image.open(path))
-
-    if ext == "pdf":
-        text = ""
-        doc = fitz.open(path)
-        for page in doc:
-            text += page.get_text()
-
-        if not text.strip():
-            for page in doc:
-                pix = page.get_pixmap()
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                text += pytesseract.image_to_string(img)
-
-        return text
-
-    if ext in ["doc", "docx"]:
-        doc = Document(path)
-        return "\n".join(p.text for p in doc.paragraphs)
-
-    if ext == "txt":
-        with open(path, "r", encoding="utf-8", errors="ignore") as f:
-            return f.read()
-
-    raise ValueError("Unsupported file format")
+    return text.strip()
